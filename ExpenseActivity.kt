@@ -881,7 +881,6 @@ fun AddCategoryDialog(
         containerColor = Color(0xFF2B2B2B)
     )
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -924,7 +923,7 @@ fun AddTransactionDialog(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.8f))
-            .clickable(enabled = true, onClick = {})
+            //.clickable(enabled = true, onClick = {}) // Removed clickable
             .zIndex(1f),
     ) {
         Column(
@@ -982,11 +981,11 @@ fun AddTransactionDialog(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Text(
                     text = "${stringResource(id = R.string.date)}: $date",
-                    color = Color.Black,
+                    color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -1001,43 +1000,53 @@ fun AddTransactionDialog(
                         filteredCategories = categories.filter { it.contains(query, true) }
                         isDropdownExpanded = true
                     },
-                    label = { Text(stringResource(id = R.string.category)) },
+                    label = { Text(stringResource(id = R.string.category), color = Color.White) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
-                    },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color.White,
                         focusedLabelColor = Color.White,
                         unfocusedLabelColor = Color.Gray,
+                        containerColor = Color.Transparent,
                         focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        containerColor = Color.Transparent
+                        unfocusedTextColor = Color.White
                     ),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
                 )
                 ExposedDropdownMenu(
                     expanded = isDropdownExpanded,
                     onDismissRequest = { isDropdownExpanded = false },
-                    modifier = Modifier.background(Color.DarkGray)
+                    modifier = Modifier.background(Color(0xFF2B2B2B))
                 ) {
                     filteredCategories.forEach { category ->
                         DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = category,
-                                    color = Color.White
-                                )
-                            },
+                            text = { Text(category, color = Color.White) },
                             onClick = {
                                 selectedCategory = category
                                 isDropdownExpanded = false
-                            }
+                            },
+                            modifier = Modifier.background(Color(0xFF2B2B2B))
                         )
                     }
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "+ ${stringResource(id = R.string.add_category_expense)}",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        onClick = {
+                            showAddCategoryDialog = true
+                            isDropdownExpanded = false
+                        },
+                        modifier = Modifier
+                            .background(Color(0xFF2B2B2B))
+                    )
                 }
             }
             OutlinedTextField(
@@ -1047,6 +1056,7 @@ fun AddTransactionDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
+                singleLine = true,
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.Gray,
@@ -1057,38 +1067,48 @@ fun AddTransactionDialog(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                    onClick =  onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
-                    Text(stringResource(id = R.string.cancel), color = Color.White)
+                    Text(stringResource(id = R.string.cancel), color = Color(0xFFFF0000), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
                 Button(
                     onClick = {
-                        if (amount.isNotBlank() && selectedCategory.isNotBlank() && date.isNotBlank()) {
-                            val transaction = Transaction(
-                                id = UUID.randomUUID().toString(),
-                                amount = amount.toDouble(),
-                                date = date,
-                                category = selectedCategory,
-                                comments = comment.takeIf { it.isNotBlank() } // Використання takeIf для comments
-                            )
-                            onSave(transaction)
-                        }
+                        val transaction = Transaction(
+                            id = UUID.randomUUID().toString(),
+                            amount = (amount.toDoubleOrNull() ?: 0.0) * -1,
+                            date = date,
+                            category = selectedCategory,
+                            comments = comment.takeIf { it.isNotBlank() }
+                        )
+                        onSave(transaction)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
-                    Text(stringResource(id = R.string.save), color = Color.White)
+                    Text(stringResource(id = R.string.save), color = Color(0xFF00FF00), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
         }
+    }
+
+    if (showAddCategoryDialog) {
+        AddCategoryDialog(
+            onDismiss = { showAddCategoryDialog = false },
+            onSave = { newCategory ->
+                onAddCategory(newCategory)
+                selectedCategory = newCategory
+                showAddCategoryDialog = false
+            }
+        )
     }
 }
 data class Transaction(
