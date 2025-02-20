@@ -923,9 +923,12 @@ fun IncomeAddIncomeTransactionDialog(
                 .align(Alignment.Center)
                 .padding(16.dp)
                 .border(2.dp, Color.White, RoundedCornerShape(8.dp))
-                .background(
+                .background( // Gradient Background for the Menu
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Gray.copy(alpha = 0.8f), Color.Black.copy(alpha = 0.8f))
+                        colors = listOf(
+                            Color(0xFF006400).copy(alpha = 0.8f), // Dark Green Transparent
+                            Color.Black.copy(alpha = 0.8f)  // Dark Black Transparent
+                        )
                     ),
                     shape = RoundedCornerShape(8.dp)
                 )
