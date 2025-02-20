@@ -88,11 +88,11 @@ class ExpenseActivity : ComponentActivity() {
         startActivity(intent)
     }
     private fun updateCategoriesIfNeeded() {
-        val currentExpenseHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardExpenseCategories())
+        val currentExpenseHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardExpenseCategories(this))
         val savedExpenseHash = sharedPreferences.getString("categories_hash", "")
 
         if (currentExpenseHash != savedExpenseHash) {
-            val expenseCategories = StandardCategories.getStandardExpenseCategories()
+            val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
             saveCategories(expenseCategories)
             sharedPreferences.edit().putString("categories_hash", currentExpenseHash).apply()
             viewModel.updateCategories(expenseCategories)
@@ -219,7 +219,7 @@ class ExpenseActivity : ComponentActivity() {
         val categoriesList: List<String> = if (categoriesJson != null) {
             Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
         } else {
-            val defaultCategories = StandardCategories.getStandardExpenseCategories()
+            val defaultCategories = StandardCategories.getStandardExpenseCategories(application)
             viewModel.saveCategories(defaultCategories)
             defaultCategories
         }
@@ -392,7 +392,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         return if (json != null) {
             gson.fromJson(json, object : TypeToken<List<String>>() {}.type)
         } else {
-            val defaultCategories = StandardCategories.getStandardExpenseCategories()
+            val defaultCategories = StandardCategories.getStandardExpenseCategories(getApplication())
             saveCategories(defaultCategories)
             defaultCategories
         }
