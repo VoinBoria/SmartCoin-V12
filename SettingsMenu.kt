@@ -25,7 +25,8 @@ fun SettingsMenu(
     onCurrencySelected: (String) -> Unit,
     onLanguageSelected: (String) -> Unit,
     updateLocale: (Context, String) -> Unit,
-    onSaveSettings: () -> Unit
+    onSaveSettings: () -> Unit,
+    refreshUI: () -> Unit, // Доданий параметр
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -122,6 +123,7 @@ fun SettingsMenu(
                     onSaveSettings()
                     updateLocale(context, selectedLanguage) // Виклик updateLocale
                     onDismiss()
+                    refreshUI() // Виклик refreshUI
                 }) {
                     Text("Зберегти", color = Color.Green)
                 }
