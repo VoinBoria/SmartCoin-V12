@@ -872,7 +872,8 @@ fun MainScreen(
                             categories = expenseCategories,
                             onDismiss = { showAddExpenseTransactionDialog = false },
                             onSave = { transaction: Transaction ->
-                                viewModel.saveExpenseTransaction(context, transaction)
+                                val negativeTransaction = transaction.copy(amount = -transaction.amount) // Додаємо знак мінус до суми витрат
+                                viewModel.saveExpenseTransaction(context, negativeTransaction)
                                 viewModel.refreshExpenses()
                                 showAddExpenseTransactionDialog = false
                             },
