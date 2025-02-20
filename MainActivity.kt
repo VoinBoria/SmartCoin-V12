@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity() {
         var tempSelectedCurrency by remember { mutableStateOf(selectedCurrency) }
         var tempSelectedLanguage by remember { mutableStateOf(selectedLanguage) }
 
-        var showSplashScreen by remember { mutableStateOf(true) }
+        var showSplashScreen by remember { mutableStateOf(false) } // Updated to false to prevent splash screen
 
         if (showSplashScreen) {
             SplashScreen(onTimeout = {
@@ -192,16 +192,21 @@ class MainActivity : ComponentActivity() {
                     saveSettings(sharedPreferences, selectedLanguage, selectedCurrency)
                     updateLocale(context, selectedLanguage)
                     updateCategories() // Оновлюємо категорії
-                    // Перезапускаємо MainActivity
-                    val restartIntent = Intent(context, MainActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        putExtra("SHOW_SPLASH_SCREEN", false)
-                    }
-                    context.startActivity(restartIntent)
+                    // Оновлюємо UI для відображення нової мови
+                    updateUI()
                 },
                 updateLocale = ::updateLocale,
                 currency = selectedCurrency
             )
+        }
+    }
+
+    private fun updateUI() {
+        // Викликайте цю функцію для оновлення всіх необхідних елементів UI після зміни мови
+        setContent {
+            HomeAccountingAppTheme {
+                MainContent()
+            }
         }
     }
     private fun getSelectedCurrency(sharedPreferences: SharedPreferences): String {
