@@ -11,6 +11,7 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -902,6 +903,7 @@ fun AddTransactionDialog(
     var showDatePicker by remember { mutableStateOf(false) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var showAddCategoryDialog by remember { mutableStateOf(false) } // Додано стан для показу діалогу додавання категорії
+    var showError by remember { mutableStateOf(false) } // Додано стан для показу повідомлення про помилку
 
     val context = LocalContext.current
 
@@ -1086,18 +1088,62 @@ fun AddTransactionDialog(
                 }
                 Button(
                     onClick = {
-                        val transaction = Transaction(
-                            id = UUID.randomUUID().toString(),
-                            amount = (amount.toDoubleOrNull() ?: 0.0) * -1,
-                            date = date,
-                            category = selectedCategory,
-                            comments = comment.takeIf { it.isNotBlank() }
-                        )
-                        onSave(transaction)
+                        if (selectedCategory.isNotBlank()) {
+                            val transaction = Transaction(
+                                id = UUID.randomUUID().toString(),
+                                amount = (amount.toDoubleOrNull() ?: 0.0) * -1,
+                                date = date,
+                                category = selectedCategory,
+                                comments = comment.takeIf { it.isNotBlank() }
+                            )
+                            onSave(transaction)
+                        } else {
+                            // Показуємо повідомлення про помилку, що необхідно вибрати категорію
+                            showError = true
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Text(stringResource(id = R.string.save), color = Color(0xFF00FF00), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                }
+            }
+        }
+    }
+
+    if (showError) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.6f))
+                .zIndex(2f)
+                .clickable { showError = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF8B0000).copy(alpha = 0.8f), // Dark Red Transparent
+                                Color.Black.copy(alpha = 0.8f)  // Dark Black Transparent
+                            )
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(16.dp)
+                    .widthIn(max = 300.dp)
+            ) {
+                Text(
+                    text = "Будь ласка, виберіть категорію",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { showError = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                ) {
+                    Text("OK", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
