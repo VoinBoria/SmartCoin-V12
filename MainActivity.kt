@@ -113,92 +113,97 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun MainContent() {
         val context = LocalContext.current
-        val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         var selectedCurrency by remember { mutableStateOf(getSelectedCurrency(sharedPreferences)) }
         var selectedLanguage by remember { mutableStateOf(getSelectedLanguage(sharedPreferences)) }
         var tempSelectedCurrency by remember { mutableStateOf(selectedCurrency) }
         var tempSelectedLanguage by remember { mutableStateOf(selectedLanguage) }
 
-        // Видалено LaunchedEffect для негайного оновлення локалі
+        var showSplashScreen by remember { mutableStateOf(true) }
 
-        MainScreen(
-            onNavigateToMainActivity = {
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    putExtra("SHOW_SPLASH_SCREEN", false)
-                }
-                context.startActivity(intent)
-            },
-            onNavigateToIncomes = {
-                val intent = Intent(context, IncomeActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToExpenses = {
-                val intent = Intent(context, ExpenseActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToIssuedOnLoan = {
-                val intent = Intent(context, IssuedOnLoanActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToBorrowed = {
-                val intent = Intent(context, BorrowedActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToAllTransactionIncome = {
-                val intent = Intent(context, AllTransactionIncomeActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToAllTransactionExpense = {
-                val intent = Intent(context, AllTransactionExpenseActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToBudgetPlanning = {
-                val intent = Intent(context, BudgetPlanningActivity::class.java)
-                context.startActivity(intent)
-            },
-            onNavigateToTaskActivity = {
-                val intent = Intent(context, TaskActivity::class.java)
-                context.startActivity(intent)
-            },
-            viewModel = viewModel,
-            onIncomeCategoryClick = { category ->
-                val intent = Intent(context, IncomeTransactionActivity::class.java).apply {
-                    putExtra("categoryName", category)
-                }
-                context.startActivity(intent)
-            },
-            onExpenseCategoryClick = { category ->
-                val intent = Intent(context, ExpenseTransactionActivity::class.java).apply {
-                    putExtra("categoryName", category)
-                }
-                context.startActivity(intent)
-            },
-            selectedCurrency = tempSelectedCurrency,
-            onCurrencySelected = { currency ->
-                tempSelectedCurrency = currency
-            },
-            selectedLanguage = tempSelectedLanguage,
-            onLanguageSelected = { language ->
-                tempSelectedLanguage = language
-            },
-            onSaveSettings = {
-                selectedCurrency = tempSelectedCurrency
-                selectedLanguage = tempSelectedLanguage
-                saveSettings(sharedPreferences, selectedLanguage, selectedCurrency)
-                updateLocale(context, selectedLanguage)
-                updateCategories() // Оновлюємо категорії
-                // Перезапускаємо MainActivity
-                val restartIntent = Intent(context, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    putExtra("SHOW_SPLASH_SCREEN", false)
-                }
-                context.startActivity(restartIntent)
-            },
-            updateLocale = ::updateLocale,
-            currency = selectedCurrency
-        )
+        if (showSplashScreen) {
+            SplashScreen(onTimeout = {
+                showSplashScreen = false
+            })
+        } else {
+            MainScreen(
+                onNavigateToMainActivity = {
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        putExtra("SHOW_SPLASH_SCREEN", false)
+                    }
+                    context.startActivity(intent)
+                },
+                onNavigateToIncomes = {
+                    val intent = Intent(context, IncomeActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToExpenses = {
+                    val intent = Intent(context, ExpenseActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToIssuedOnLoan = {
+                    val intent = Intent(context, IssuedOnLoanActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToBorrowed = {
+                    val intent = Intent(context, BorrowedActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToAllTransactionIncome = {
+                    val intent = Intent(context, AllTransactionIncomeActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToAllTransactionExpense = {
+                    val intent = Intent(context, AllTransactionExpenseActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToBudgetPlanning = {
+                    val intent = Intent(context, BudgetPlanningActivity::class.java)
+                    context.startActivity(intent)
+                },
+                onNavigateToTaskActivity = {
+                    val intent = Intent(context, TaskActivity::class.java)
+                    context.startActivity(intent)
+                },
+                viewModel = viewModel(),
+                onIncomeCategoryClick = { category ->
+                    val intent = Intent(context, IncomeTransactionActivity::class.java).apply {
+                        putExtra("categoryName", category)
+                    }
+                    context.startActivity(intent)
+                },
+                onExpenseCategoryClick = { category ->
+                    val intent = Intent(context, ExpenseTransactionActivity::class.java).apply {
+                        putExtra("categoryName", category)
+                    }
+                    context.startActivity(intent)
+                },
+                selectedCurrency = tempSelectedCurrency,
+                onCurrencySelected = { currency ->
+                    tempSelectedCurrency = currency
+                },
+                selectedLanguage = tempSelectedLanguage,
+                onLanguageSelected = { language ->
+                    tempSelectedLanguage = language
+                },
+                onSaveSettings = {
+                    selectedCurrency = tempSelectedCurrency
+                    selectedLanguage = tempSelectedLanguage
+                    saveSettings(sharedPreferences, selectedLanguage, selectedCurrency)
+                    updateLocale(context, selectedLanguage)
+                    updateCategories() // Оновлюємо категорії
+                    // Перезапускаємо MainActivity
+                    val restartIntent = Intent(context, MainActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        putExtra("SHOW_SPLASH_SCREEN", false)
+                    }
+                    context.startActivity(restartIntent)
+                },
+                updateLocale = ::updateLocale,
+                currency = selectedCurrency
+            )
+        }
     }
-
     private fun getSelectedCurrency(sharedPreferences: SharedPreferences): String {
         return sharedPreferences.getString("currency", "UAH") ?: "UAH"
     }
@@ -271,6 +276,8 @@ class MainActivity : ComponentActivity() {
 // Функція Splash Screen
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
+    val currentOnTimeout by rememberUpdatedState(onTimeout)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -286,7 +293,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
     LaunchedEffect(Unit) {
         delay(2000) // Затримка для відображення SplashScreen
-        onTimeout()
+        currentOnTimeout()
     }
 }
 class MainViewModel(application: Application) : AndroidViewModel(application) {
