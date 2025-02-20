@@ -167,6 +167,7 @@ fun IncomeExpenseChart(
         }
     }
 }
+
 @Composable
 fun LegendColumn(
     items: List<String>,
@@ -177,7 +178,8 @@ fun LegendColumn(
     Column(
         modifier = modifier
             .height(maxHeight)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .width(150.dp), // Встановлюємо фіксовану ширину для легенди
         horizontalAlignment = Alignment.Start
     ) {
         items.forEachIndexed { index, category ->
