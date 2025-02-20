@@ -239,8 +239,8 @@ class MainActivity : ComponentActivity() {
         val sharedPreferencesExpense = getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
         val sharedPreferencesIncome = getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
 
-        val expenseCategories = StandardCategories.getStandardExpenseCategories()
-        val incomeCategories = StandardCategories.getStandardIncomeCategories()
+        val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
+        val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
 
         saveCategories(sharedPreferencesExpense, expenseCategories)
         saveCategories(sharedPreferencesIncome, incomeCategories)
@@ -258,20 +258,20 @@ class MainActivity : ComponentActivity() {
     private fun updateCategoriesIfNeeded() {
         val sharedPreferencesExpense = getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
         val sharedPreferencesIncome = getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
-        val currentExpenseHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardExpenseCategories())
-        val currentIncomeHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardIncomeCategories())
+        val currentExpenseHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardExpenseCategories(this))
+        val currentIncomeHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardIncomeCategories(this))
 
         val savedExpenseHash = sharedPreferencesExpense.getString("categories_hash", "")
         val savedIncomeHash = sharedPreferencesIncome.getString("categories_hash", "")
 
         if (currentExpenseHash != savedExpenseHash) {
-            val expenseCategories = StandardCategories.getStandardExpenseCategories()
+            val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
             saveCategories(sharedPreferencesExpense, expenseCategories)
             sharedPreferencesExpense.edit().putString("categories_hash", currentExpenseHash).apply()
         }
 
         if (currentIncomeHash != savedIncomeHash) {
-            val incomeCategories = StandardCategories.getStandardIncomeCategories()
+            val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
             saveCategories(sharedPreferencesIncome, incomeCategories)
             sharedPreferencesIncome.edit().putString("categories_hash", currentIncomeHash).apply()
         }
@@ -325,8 +325,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // Метод для завантаження стандартних категорій
     fun loadStandardCategories() {
-        val expenseCategories = loadCategories(sharedPreferencesExpense, StandardCategories.getStandardExpenseCategories())
-        val incomeCategories = loadCategories(sharedPreferencesIncome, StandardCategories.getStandardIncomeCategories())
+        val expenseCategories = loadCategories(sharedPreferencesExpense, StandardCategories.getStandardExpenseCategories(getApplication()))
+        val incomeCategories = loadCategories(sharedPreferencesIncome, StandardCategories.getStandardIncomeCategories(getApplication()))
 
         _expenseCategories.value = expenseCategories
         _incomeCategories.value = incomeCategories
