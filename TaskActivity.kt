@@ -279,16 +279,23 @@ class TaskViewModel(
     private val _tasks = mutableStateListOf<Task>()
     val tasks: List<Task> = _tasks
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun addTask(task: Task) {
         _tasks.add(task)
         saveTasks()
+        scheduleTaskReminders(task) // Schedule reminders when adding a task
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun updateTask(updatedTask: Task) {
         val index = _tasks.indexOfFirst { it.id == updatedTask.id }
         if (index != -1) {
+            // Cancel existing reminders for the task before updating
+            cancelTaskReminders(updatedTask)
+
             _tasks[index] = updatedTask
             saveTasks()
+            scheduleTaskReminders(updatedTask) // Schedule reminders after updating a task
         }
     }
 
@@ -307,6 +314,7 @@ class TaskViewModel(
         saveTasks()
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun toggleTaskCompletion(task: Task) {
         val index = _tasks.indexOf(task)
         if (index != -1) {
@@ -316,6 +324,8 @@ class TaskViewModel(
             // Скасування нагадувань, якщо задача відзначена як виконана
             if (updatedTask.isCompleted) {
                 cancelTaskReminders(updatedTask)
+            } else {
+                scheduleTaskReminders(updatedTask)
             }
 
             saveTasks()
@@ -323,12 +333,16 @@ class TaskViewModel(
     }
 
     // Завантаження задач з SharedPreferences
+    @RequiresApi(Build.VERSION_CODES.S)
     fun loadTasks() {
         val tasksJson = sharedPreferences.getString("tasks", "[]")
         val type = object : TypeToken<List<Task>>() {}.type
         val loadedTasks: List<Task> = gson.fromJson(tasksJson, type)
         _tasks.clear()
         _tasks.addAll(loadedTasks)
+
+        // Schedule reminders for all loaded tasks
+        _tasks.forEach { scheduleTaskReminders(it) }
     }
 
     // Збереження задач у SharedPreferences
@@ -343,6 +357,31 @@ class TaskViewModel(
     fun hasOverdueTasks(): Boolean {
         val currentDate = Date()
         return _tasks.any { !it.isCompleted && it.endDate.before(currentDate) }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    @SuppressLint("ScheduleExactAlarm")
+    private fun scheduleTaskReminders(task: Task) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        // Schedule reminder for task start time
+        scheduleReminder(alarmManager, context, task.startDate.time, task.title, "START", task.id.hashCode(), "на початку")
+
+        // Schedule advance reminder if a reminder time is selected
+        if (task.reminder != context.getString(R.string.reminder_none)) {
+            val reminderTime = when (task.reminder) {
+                context.getString(R.string.reminder_10_minutes) -> task.startDate.time - 10 * 60 * 1000
+                context.getString(R.string.reminder_30_minutes) -> task.startDate.time - 30 * 60 * 1000
+                context.getString(R.string.reminder_1_hour) -> task.startDate.time - 60 * 60 * 1000
+                context.getString(R.string.reminder_1_day) -> task.startDate.time - 24 * 60 * 60 * 1000
+                context.getString(R.string.reminder_1_week) -> task.startDate.time - 7 * 24 * 60 * 60 * 1000
+                else -> task.startDate.time // No reminder
+            }
+
+            if (reminderTime > System.currentTimeMillis()) {
+                scheduleReminder(alarmManager, context, reminderTime, task.title, "REMINDER", task.id.hashCode() + 1000, task.reminder!!)
+            }
+        }
     }
 }
 
@@ -756,15 +795,15 @@ fun TaskItem(
     task: Task,
     onToggleCompletion: (Task) -> Unit,
     onDeleteTask: (Task) -> Unit,
-    onEditTask: (Task) -> Unit // Add this parameter for editing a task
+    onEditTask: (Task) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .background(Color(0xFF1E1E1E).copy(alpha = 0.8f)) // Яскравіше, але прозоре
+            .background(Color(0xFF1E1E1E).copy(alpha = 0.8f))
             .padding(16.dp)
-            .clickable { onEditTask(task) }, // Add clickable modifier to trigger edit
+            .clickable { onEditTask(task) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -772,7 +811,7 @@ fun TaskItem(
             Text(
                 text = task.title,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold, // Жирний шрифт
+                    fontWeight = FontWeight.Bold,
                     textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null,
                     color = Color.White
                 )
@@ -787,7 +826,11 @@ fun TaskItem(
                 )
             }
             Text(
-                text = stringResource(id = R.string.start_date, SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(task.startDate)),
+                text = stringResource(id = R.string.start_date) + ": " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(task.startDate),
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+            )
+            Text(
+                text = stringResource(id = R.string.task_start_time_label) + ": " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(task.startDate),
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
             )
 
@@ -808,17 +851,18 @@ fun TaskItem(
         }
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.S)
 @SuppressLint("ScheduleExactAlarm")
 fun scheduleReminder(alarmManager: AlarmManager, context: Context, triggerAtMillis: Long, taskTitle: String, action: String, requestCode: Int, reminderTime: String) {
-    val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-        putExtra("TASK_TITLE", taskTitle)
-        putExtra("ACTION", action)
-        putExtra("REMINDER_TIME", reminderTime)
+    if (triggerAtMillis > System.currentTimeMillis()) {
+        val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
+            putExtra("TASK_TITLE", taskTitle)
+            putExtra("ACTION", action)
+            putExtra("REMINDER_TIME", reminderTime)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE)
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
     }
-    val pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE)
-    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
 }
 
 class ReminderBroadcastReceiver : BroadcastReceiver() {
