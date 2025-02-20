@@ -26,7 +26,7 @@ fun SettingsMenu(
     onLanguageSelected: (String) -> Unit,
     updateLocale: (Context, String) -> Unit,
     onSaveSettings: () -> Unit,
-    refreshUI: () -> Unit, // Доданий параметр
+    refreshUI: () -> Unit // Доданий параметр
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -131,7 +131,6 @@ fun SettingsMenu(
         }
     }
 }
-
 @Composable
 fun LanguageOption(language: String, selectedLanguage: String, onSelect: (String) -> Unit) {
     Button(
