@@ -201,6 +201,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateUI() {
         // Викликайте цю функцію для оновлення всіх необхідних елементів UI після зміни мови
         setContent {
