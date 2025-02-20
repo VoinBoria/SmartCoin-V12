@@ -92,11 +92,11 @@ class IncomeActivity : ComponentActivity() {
         startActivity(intent)
     }
     private fun updateCategoriesIfNeeded() {
-        val currentIncomeHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardIncomeCategories())
+        val currentIncomeHash = StandardCategories.getCategoriesHash(StandardCategories.getStandardIncomeCategories(this))
         val savedIncomeHash = incomesharedPreferences.getString("categories_hash", "")
 
         if (currentIncomeHash != savedIncomeHash) {
-            val incomeCategories = StandardCategories.getStandardIncomeCategories()
+            val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
             saveCategories(incomeCategories)
             incomesharedPreferences.edit().putString("categories_hash", currentIncomeHash).apply()
             viewModel.updateCategories(incomeCategories)
@@ -228,7 +228,7 @@ class IncomeActivity : ComponentActivity() {
         val categoriesList: List<String> = if (categoriesJson != null) {
             Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
         } else {
-            val defaultCategories = StandardCategories.getStandardIncomeCategories()
+            val defaultCategories = StandardCategories.getStandardIncomeCategories(application)
             viewModel.saveCategories(defaultCategories)
             defaultCategories
         }
@@ -418,7 +418,7 @@ class IncomeViewModel(application: Application) : AndroidViewModel(application) 
         return if (json != null) {
             gson.fromJson(json, object : TypeToken<List<String>>() {}.type)
         } else {
-            val defaultCategories = StandardCategories.getStandardIncomeCategories()
+            val defaultCategories = StandardCategories.getStandardIncomeCategories(getApplication())
             saveCategories(defaultCategories)
             defaultCategories
         }
