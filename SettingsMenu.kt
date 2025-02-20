@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -57,7 +58,7 @@ fun SettingsMenu(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Налаштування",
+                text = stringResource(id = R.string.settings),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -67,7 +68,7 @@ fun SettingsMenu(
                     .padding(8.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Мова:", color = Color.White)
+            Text(text = stringResource(id = R.string.language), color = Color.White)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,7 +91,7 @@ fun SettingsMenu(
             Spacer(modifier = Modifier.height(16.dp))
             Divider(color = Color.Gray, thickness = 1.dp)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Валюта:", color = Color.White)
+            Text(text = stringResource(id = R.string.currency), color = Color.White)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +117,7 @@ fun SettingsMenu(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text("Закрити", color = Color.Red)
+                    Text(stringResource(id = R.string.close), color = Color.Red)
                 }
                 TextButton(onClick = {
                     saveSettings(sharedPreferences, selectedLanguage, selectedCurrency) // Виклик saveSettings
@@ -125,12 +126,13 @@ fun SettingsMenu(
                     onDismiss()
                     refreshUI() // Виклик refreshUI
                 }) {
-                    Text("Зберегти", color = Color.Green)
+                    Text(stringResource(id = R.string.save), color = Color.Green)
                 }
             }
         }
     }
 }
+
 @Composable
 fun LanguageOption(language: String, selectedLanguage: String, onSelect: (String) -> Unit) {
     Button(
