@@ -121,6 +121,11 @@ class MainActivity : ComponentActivity() {
 
         var showSplashScreen by remember { mutableStateOf(false) } // Updated to false to prevent splash screen
 
+        LaunchedEffect(key1 = selectedLanguage) {
+            // Оновити контент при зміні мови
+            refreshUI()
+        }
+
         if (showSplashScreen) {
             SplashScreen(onTimeout = {
                 showSplashScreen = false
@@ -193,7 +198,7 @@ class MainActivity : ComponentActivity() {
                     updateLocale(context, selectedLanguage)
                     updateCategories() // Оновлюємо категорії
                     // Оновлюємо UI для відображення нової мови
-                    updateUI()
+                    refreshUI()
                 },
                 updateLocale = ::updateLocale,
                 currency = selectedCurrency,
@@ -201,7 +206,6 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateUI() {
         // Викликайте цю функцію для оновлення всіх необхідних елементів UI після зміни мови
@@ -211,10 +215,16 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun refreshUI() {
         viewModel.refreshExpenses()
         viewModel.refreshIncomes()
         viewModel.refreshCategories()
+        setContent {
+            HomeAccountingAppTheme {
+                MainContent()
+            }
+        }
     }
     private fun getSelectedCurrency(sharedPreferences: SharedPreferences): String {
         return sharedPreferences.getString("currency", "UAH") ?: "UAH"
