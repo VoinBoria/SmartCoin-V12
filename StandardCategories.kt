@@ -23,7 +23,7 @@ object StandardCategories {
 
     fun getStandardIncomeCategories(): List<String> {
         return listOf(
-            "Заіірплата",
+            "Зарплата",
             "Бонуси",
             "Подарунки",
             "Пасивний дохід"
