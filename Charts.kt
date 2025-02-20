@@ -58,6 +58,9 @@ fun IncomeExpenseChart(
     val emptyExpenseChartColor = Color(0x80FF0000).copy(alpha = 0.5f) // Прозоро червоний колір для витрат
     val separatorColor = Color.DarkGray
 
+    val incomeTitle = stringResource(id = R.string.incomes)
+    val expenseTitle = stringResource(id = R.string.expenses)
+
     BoxWithConstraints {
         val screenWidth = maxWidth
         val isSmallScreen = screenWidth < 360.dp
@@ -95,7 +98,7 @@ fun IncomeExpenseChart(
                             containerColor = if (pagerState.currentPage == 0) Color.Gray else Color.Transparent
                         )
                     ) {
-                        Text(stringResource(id = R.string.incomes), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(incomeTitle, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
@@ -104,7 +107,7 @@ fun IncomeExpenseChart(
                             containerColor = if (pagerState.currentPage == 1) Color.Gray else Color.Transparent
                         )
                     ) {
-                        Text(stringResource(id = R.string.expenses), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(expenseTitle, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
                 }
 
