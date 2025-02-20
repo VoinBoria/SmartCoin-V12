@@ -119,14 +119,14 @@ class MainActivity : ComponentActivity() {
         var tempSelectedCurrency by remember { mutableStateOf(selectedCurrency) }
         var tempSelectedLanguage by remember { mutableStateOf(selectedLanguage) }
 
-        var showSplashScreen by remember { mutableStateOf(false) } // Updated to false to prevent splash screen
+        var showSplashScreen by remember { mutableStateOf(false) }
+        var showSettingsMenu by remember { mutableStateOf(sharedPreferences.getBoolean("first_launch", true)) } // Show settings menu only on first launch
 
         LaunchedEffect(key1 = selectedLanguage) {
-            // Оновити контент при зміні мови
             refreshUI()
         }
 
-        val appTitle = stringResource(id = R.string.main_screen_title) // Move this inside the composable to update dynamically
+        val appTitle = stringResource(id = R.string.main_screen_title)
 
         if (showSplashScreen) {
             SplashScreen(onTimeout = {
@@ -198,14 +198,16 @@ class MainActivity : ComponentActivity() {
                     selectedLanguage = tempSelectedLanguage
                     saveSettings(sharedPreferences, selectedLanguage, selectedCurrency)
                     updateLocale(context, selectedLanguage)
-                    updateCategories() // Оновлюємо категорії
-                    // Оновлюємо UI для відображення нової мови
+                    updateCategories()
                     refreshUI()
+                    sharedPreferences.edit().putBoolean("first_launch", false).apply() // Update first launch status
+                    showSettingsMenu = false // Close SettingsMenu after saving settings
                 },
                 updateLocale = ::updateLocale,
                 currency = selectedCurrency,
-                refreshUI = ::refreshUI, // Передаємо refreshUI
-                appTitle = appTitle // Pass the dynamic title
+                refreshUI = ::refreshUI,
+                appTitle = appTitle,
+                showSettingsMenu = showSettingsMenu // Ensure this parameter is passed
             )
         }
     }
@@ -537,11 +539,12 @@ fun MainScreen(
     onCurrencySelected: (String) -> Unit,
     selectedLanguage: String,
     onLanguageSelected: (String) -> Unit,
-    updateLocale: (Context, String) -> Unit, // Доданий параметр
-    onSaveSettings: () -> Unit, // Доданий параметр
-    currency: String, // Доданий параметр
-    refreshUI: () -> Unit, // Доданий параметр
-    appTitle: String // Доданий параметр
+    updateLocale: (Context, String) -> Unit,
+    onSaveSettings: () -> Unit,
+    currency: String,
+    refreshUI: () -> Unit,
+    appTitle: String,
+    showSettingsMenu: Boolean
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -550,7 +553,7 @@ fun MainScreen(
     var showAddExpenseTransactionDialog by remember { mutableStateOf(false) }
     var showAddIncomeTransactionDialog by remember { mutableStateOf(false) }
     var showMessage by remember { mutableStateOf(false) }
-    var showSettingsMenu by remember { mutableStateOf(false) }
+    var settingsMenuVisible by remember { mutableStateOf(showSettingsMenu) } // Use the passed parameter to control visibility
 
     LaunchedEffect(Unit) {
         showExpenses = false
@@ -575,11 +578,11 @@ fun MainScreen(
         showMessage = showWarning || showSuccess
         if (showMessage) {
             messagePhase = 1
-            delay(3000) // Повідомлення висить в середині екрану 3 секунди
+            delay(3000)
             messagePhase = 2
-            delay(1000) // Час для анімації спуску
+            delay(1000)
             messagePhase = 3
-            delay(2000) // Повідомлення висить внизу 2 секунди
+            delay(2000)
             showMessage = false
             messagePhase = 0
         }
@@ -607,7 +610,7 @@ fun MainScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(appTitle, color = Color.White) }, // Use the dynamic appTitle
+                    title = { Text(appTitle, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
@@ -618,7 +621,7 @@ fun MainScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { showSettingsMenu = true }) {
+                        IconButton(onClick = { settingsMenuVisible = true }) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
                                 contentDescription = stringResource(id = R.string.settings),
@@ -651,12 +654,12 @@ fun MainScreen(
                             ) {
                                 Column(
                                     modifier = Modifier
-                                        .widthIn(max = 400.dp),  // Обмеження ширини контейнера
+                                        .widthIn(max = 400.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .widthIn(max = 400.dp) // Обмеження ширини кнопки
+                                            .widthIn(max = 400.dp)
                                             .padding(vertical = 8.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
@@ -671,17 +674,17 @@ fun MainScreen(
                                             ),
                                             isExpanded = showIncomes,
                                             onClick = { showIncomes = !showIncomes },
-                                            textColor = Color(0xFF00FF00), // Яскравий зелений колір тексту
-                                            fontWeight = FontWeight.Bold,  // Жирний шрифт
-                                            fontSize = 18.sp, // Збільшення шрифту
-                                            currency = currency // Доданий параметр
+                                            textColor = Color(0xFF00FF00),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            currency = currency
                                         )
                                     }
 
                                     if (showIncomes) {
                                         Column(
                                             modifier = Modifier
-                                                .heightIn(max = 200.dp) // Обмеження висоти списку
+                                                .heightIn(max = 200.dp)
                                                 .verticalScroll(rememberScrollState())
                                         ) {
                                             IncomeList(incomes = incomes, onCategoryClick = onIncomeCategoryClick, currency = currency)
@@ -691,7 +694,7 @@ fun MainScreen(
 
                                     Box(
                                         modifier = Modifier
-                                            .widthIn(max = 400.dp) // Обмеження ширини кнопки
+                                            .widthIn(max = 400.dp)
                                             .padding(vertical = 8.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
@@ -706,17 +709,17 @@ fun MainScreen(
                                             ),
                                             isExpanded = showExpenses,
                                             onClick = { showExpenses = !showExpenses },
-                                            textColor = Color(0xFFFF0000), // Яскравий червоний колір тексту
-                                            fontWeight = FontWeight.Bold,  // Жирний шрифт
-                                            fontSize = 18.sp, // Збільшення шрифту
-                                            currency = currency // Доданий параметр
+                                            textColor = Color(0xFFFF0000),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            currency = currency
                                         )
                                     }
 
                                     if (showExpenses) {
                                         Column(
                                             modifier = Modifier
-                                                .heightIn(max = 200.dp) // Обмеження висоти списку
+                                                .heightIn(max = 200.dp)
                                                 .verticalScroll(rememberScrollState())
                                         ) {
                                             ExpensesList(expenses = expenses, onCategoryClick = onExpenseCategoryClick, currency = currency)
@@ -726,10 +729,10 @@ fun MainScreen(
 
                                 Box(
                                     modifier = Modifier
-                                        .widthIn(max = 400.dp) // Обмеження ширини контейнера для діаграм
+                                        .widthIn(max = 400.dp)
                                         .padding(vertical = 8.dp)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(Color.Transparent, RoundedCornerShape(10.dp)) // Прозорий фон
+                                        .background(Color.Transparent, RoundedCornerShape(10.dp))
                                         .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
                                 ) {
                                     IncomeExpenseChart(
@@ -737,7 +740,7 @@ fun MainScreen(
                                         expenses = expenses,
                                         totalIncomes = totalIncomes,
                                         totalExpenses = totalExpenses,
-                                        currency = currency // Доданий параметр
+                                        currency = currency
                                     )
                                 }
                             }
@@ -752,12 +755,12 @@ fun MainScreen(
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .widthIn(max = 600.dp),  // Обмеження ширини контейнера
+                                        .widthIn(max = 600.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .widthIn(max = 400.dp) // Обмеження ширини кнопки
+                                            .widthIn(max = 400.dp)
                                             .padding(vertical = 8.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
@@ -772,17 +775,17 @@ fun MainScreen(
                                             ),
                                             isExpanded = showIncomes,
                                             onClick = { showIncomes = !showIncomes },
-                                            textColor = Color(0xFF00FF00), // Яскравий зелений колір тексту
-                                            fontWeight = FontWeight.Bold,  // Жирний шрифт
-                                            fontSize = 18.sp, // Збільшення шрифту
-                                            currency = currency // Доданий параметр
+                                            textColor = Color(0xFF00FF00),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            currency = currency
                                         )
                                     }
 
                                     if (showIncomes) {
                                         Column(
                                             modifier = Modifier
-                                                .heightIn(max = 200.dp) // Обмеження висоти списку
+                                                .heightIn(max = 200.dp)
                                                 .verticalScroll(rememberScrollState())
                                         ) {
                                             IncomeList(incomes = incomes, onCategoryClick = onIncomeCategoryClick, currency = currency)
@@ -792,7 +795,7 @@ fun MainScreen(
 
                                     Box(
                                         modifier = Modifier
-                                            .widthIn(max = 400.dp) // Обмеження ширини кнопки
+                                            .widthIn(max = 400.dp)
                                             .padding(vertical = 8.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
@@ -807,17 +810,17 @@ fun MainScreen(
                                             ),
                                             isExpanded = showExpenses,
                                             onClick = { showExpenses = !showExpenses },
-                                            textColor = Color(0xFFFF0000), // Яскравий червоний колір тексту
-                                            fontWeight = FontWeight.Bold,  // Жирний шрифт
-                                            fontSize = 18.sp, // Збільшення шрифту
-                                            currency = currency // Доданий параметр
+                                            textColor = Color(0xFFFF0000),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            currency = currency
                                         )
                                     }
 
                                     if (showExpenses) {
                                         Column(
                                             modifier = Modifier
-                                                .heightIn(max = 200.dp) // Обмеження висоти списку
+                                                .heightIn(max = 200.dp)
                                                 .verticalScroll(rememberScrollState())
                                         ) {
                                             ExpensesList(expenses = expenses, onCategoryClick = onExpenseCategoryClick, currency = currency)
@@ -826,10 +829,9 @@ fun MainScreen(
 
                                     Spacer(modifier = Modifier.height(32.dp))
 
-                                    // Діаграми доходів та витрат
                                     Box(
                                         modifier = Modifier
-                                            .widthIn(max = 400.dp) // Обмеження ширини контейнера для діаграм
+                                            .widthIn(max = 400.dp)
                                             .padding(vertical = 8.dp)
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
@@ -840,7 +842,7 @@ fun MainScreen(
                                             expenses = expenses,
                                             totalIncomes = totalIncomes,
                                             totalExpenses = totalExpenses,
-                                            currency = currency // Доданий параметр
+                                            currency = currency
                                         )
                                     }
                                 }
@@ -848,21 +850,20 @@ fun MainScreen(
                         }
                     }
 
-                    // Відображення залишку та кнопок
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(start = 16.dp, bottom = 15.dp)
-                            .zIndex(0f), // Встановлення нижчого zIndex для залишку
+                            .zIndex(0f),
                         contentAlignment = Alignment.BottomStart
                     ) {
-                        BalanceDisplay(balance = balance, currency = currency) // Доданий параметр
+                        BalanceDisplay(balance = balance, currency = currency)
                     }
 
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .zIndex(0f) // Встановлення нижчого zIndex для кнопок додавання транзакцій
+                            .zIndex(0f)
                     ) {
                     }
 
@@ -870,13 +871,13 @@ fun MainScreen(
                         AddTransactionDialog(
                             categories = expenseCategories,
                             onDismiss = { showAddExpenseTransactionDialog = false },
-                            onSave = { transaction: Transaction -> // Явно вказуємо тип параметра
+                            onSave = { transaction: Transaction ->
                                 viewModel.saveExpenseTransaction(context, transaction)
                                 viewModel.refreshExpenses()
                                 showAddExpenseTransactionDialog = false
                             },
                             onAddCategory = { newCategory ->
-                                viewModel.addExpenseCategory(newCategory) // Виклик методу для додавання нової категорії
+                                viewModel.addExpenseCategory(newCategory)
                             }
                         )
                     }
@@ -892,18 +893,18 @@ fun MainScreen(
                             },
                             onAddCategory = { newCategory ->
                                 viewModel.addIncomeCategory(newCategory)
-                            } // Додано параметр onAddCategory
+                            }
                         )
                     }
 
-                    if (showSettingsMenu) {
+                    if (settingsMenuVisible) {
                         SettingsMenu(
-                            refreshUI = refreshUI, // Передаємо refreshUI
-                            onDismiss = { showSettingsMenu = false },
+                            refreshUI = refreshUI,
+                            onDismiss = { settingsMenuVisible = false },
                             onCurrencySelected = onCurrencySelected,
                             onLanguageSelected = onLanguageSelected,
-                            updateLocale = updateLocale, // Додано цей параметр
-                            onSaveSettings = onSaveSettings // Додано цей параметр
+                            updateLocale = updateLocale,
+                            onSaveSettings = onSaveSettings
                         )
                     }
 
@@ -946,17 +947,17 @@ fun MainScreen(
                     ) {
                         FloatingActionButton(
                             onClick = { showAddIncomeTransactionDialog = true },
-                            containerColor = Color.LightGray, // Змінив колір на більш білий
+                            containerColor = Color.LightGray,
                             modifier = Modifier.padding(end = 16.dp)
                         ) {
-                            Text("+", color = Color.Black, style = MaterialTheme.typography.bodyLarge) // Плюсик всередині чорний
+                            Text("+", color = Color.Black, style = MaterialTheme.typography.bodyLarge)
                         }
 
                         FloatingActionButton(
                             onClick = { showAddExpenseTransactionDialog = true },
-                            containerColor = Color(0xFFe6194B) // Зробити ще темніший сірий колір
+                            containerColor = Color(0xFFe6194B)
                         ) {
-                            Text("+", color = Color.White, style = MaterialTheme.typography.bodyLarge) // Плюсик всередині білий
+                            Text("+", color = Color.White, style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
