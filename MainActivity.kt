@@ -126,6 +126,8 @@ class MainActivity : ComponentActivity() {
             refreshUI()
         }
 
+        val appTitle = stringResource(id = R.string.main_screen_title) // Move this inside the composable to update dynamically
+
         if (showSplashScreen) {
             SplashScreen(onTimeout = {
                 showSplashScreen = false
@@ -202,7 +204,8 @@ class MainActivity : ComponentActivity() {
                 },
                 updateLocale = ::updateLocale,
                 currency = selectedCurrency,
-                refreshUI = ::refreshUI // Передаємо refreshUI
+                refreshUI = ::refreshUI, // Передаємо refreshUI
+                appTitle = appTitle // Pass the dynamic title
             )
         }
     }
@@ -537,7 +540,8 @@ fun MainScreen(
     updateLocale: (Context, String) -> Unit, // Доданий параметр
     onSaveSettings: () -> Unit, // Доданий параметр
     currency: String, // Доданий параметр
-    refreshUI: () -> Unit // Доданий параметр
+    refreshUI: () -> Unit, // Доданий параметр
+    appTitle: String // Доданий параметр
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -603,7 +607,7 @@ fun MainScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(id = R.string.main_screen_title), color = Color.White) },
+                    title = { Text(appTitle, color = Color.White) }, // Use the dynamic appTitle
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
