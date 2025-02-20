@@ -976,12 +976,12 @@ fun IncomeAddIncomeTransactionDialog(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent) // Removed background color
             ) {
                 Text(
                     text = "${stringResource(id = R.string.date)}: $date",
-                    color = Color.Black,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    color = Color.White, // White color for the date
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold) // Bold font
                 )
             }
             ExposedDropdownMenuBox(
