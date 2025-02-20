@@ -196,7 +196,8 @@ class MainActivity : ComponentActivity() {
                     updateUI()
                 },
                 updateLocale = ::updateLocale,
-                currency = selectedCurrency
+                currency = selectedCurrency,
+                refreshUI = ::refreshUI // Передаємо refreshUI
             )
         }
     }
@@ -209,6 +210,11 @@ class MainActivity : ComponentActivity() {
                 MainContent()
             }
         }
+    }
+    private fun refreshUI() {
+        viewModel.refreshExpenses()
+        viewModel.refreshIncomes()
+        viewModel.refreshCategories()
     }
     private fun getSelectedCurrency(sharedPreferences: SharedPreferences): String {
         return sharedPreferences.getString("currency", "UAH") ?: "UAH"
@@ -520,7 +526,8 @@ fun MainScreen(
     onLanguageSelected: (String) -> Unit,
     updateLocale: (Context, String) -> Unit, // Доданий параметр
     onSaveSettings: () -> Unit, // Доданий параметр
-    currency: String // Доданий параметр
+    currency: String, // Доданий параметр
+    refreshUI: () -> Unit // Доданий параметр
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -877,6 +884,7 @@ fun MainScreen(
 
                     if (showSettingsMenu) {
                         SettingsMenu(
+                            refreshUI = refreshUI, // Передаємо refreshUI
                             onDismiss = { showSettingsMenu = false },
                             onCurrencySelected = onCurrencySelected,
                             onLanguageSelected = onLanguageSelected,
