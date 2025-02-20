@@ -933,7 +933,10 @@ fun AddTransactionDialog(
                 .border(2.dp, Color.White, RoundedCornerShape(8.dp))
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Gray.copy(alpha = 0.8f), Color.Black.copy(alpha = 0.8f))
+                        colors = listOf(
+                            Color(0xFF8B0000).copy(alpha = 0.8f), // Dark Red Transparent
+                            Color.Black.copy(alpha = 0.8f)  // Dark Black Transparent
+                        )
                     ),
                     shape = RoundedCornerShape(8.dp)
                 )
