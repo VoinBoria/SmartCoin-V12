@@ -76,6 +76,10 @@ import android.app.Application
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import java.util.concurrent.TimeUnit
 
 class TaskActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
@@ -290,26 +294,13 @@ class TaskViewModel(
     fun updateTask(updatedTask: Task) {
         val index = _tasks.indexOfFirst { it.id == updatedTask.id }
         if (index != -1) {
-            // Cancel existing reminders for the task before updating
-            cancelTaskReminders(updatedTask)
-
             _tasks[index] = updatedTask
             saveTasks()
             scheduleTaskReminders(updatedTask) // Schedule reminders after updating a task
         }
     }
 
-    private fun cancelTaskReminders(task: Task) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val startPendingIntent = PendingIntent.getBroadcast(context, task.id.hashCode(), Intent(context, ReminderBroadcastReceiver::class.java), PendingIntent.FLAG_IMMUTABLE)
-        val endPendingIntent = PendingIntent.getBroadcast(context, task.id.hashCode() + 1, Intent(context, ReminderBroadcastReceiver::class.java), PendingIntent.FLAG_IMMUTABLE)
-        alarmManager.cancel(startPendingIntent)
-        alarmManager.cancel(endPendingIntent)
-    }
-
     fun removeTask(task: Task) {
-        // Скасування нагадувань
-        cancelTaskReminders(task)
         _tasks.remove(task)
         saveTasks()
     }
@@ -320,19 +311,10 @@ class TaskViewModel(
         if (index != -1) {
             val updatedTask = task.copy(isCompleted = !task.isCompleted)
             _tasks[index] = updatedTask
-
-            // Скасування нагадувань, якщо задача відзначена як виконана
-            if (updatedTask.isCompleted) {
-                cancelTaskReminders(updatedTask)
-            } else {
-                scheduleTaskReminders(updatedTask)
-            }
-
             saveTasks()
         }
     }
 
-    // Завантаження задач з SharedPreferences
     @RequiresApi(Build.VERSION_CODES.S)
     fun loadTasks() {
         val tasksJson = sharedPreferences.getString("tasks", "[]")
@@ -345,7 +327,6 @@ class TaskViewModel(
         _tasks.forEach { scheduleTaskReminders(it) }
     }
 
-    // Збереження задач у SharedPreferences
     private fun saveTasks() {
         val editor = sharedPreferences.edit()
         val tasksJson = gson.toJson(_tasks)
@@ -353,19 +334,24 @@ class TaskViewModel(
         editor.apply()
     }
 
-    // Перевірка наявності прострочених завдань
     fun hasOverdueTasks(): Boolean {
         val currentDate = Date()
         return _tasks.any { !it.isCompleted && it.endDate.before(currentDate) }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    @SuppressLint("ScheduleExactAlarm")
     private fun scheduleTaskReminders(task: Task) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val workManager = WorkManager.getInstance(context)
 
         // Schedule reminder for task start time
-        scheduleReminder(alarmManager, context, task.startDate.time, task.title, "START", task.id.hashCode(), "на початку")
+        val startReminderData = workDataOf(
+            "TASK_TITLE" to task.title,
+            "REMINDER_TIME" to "на початку"
+        )
+        val startReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+            .setInitialDelay(task.startDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+            .setInputData(startReminderData)
+            .build()
 
         // Schedule advance reminder if a reminder time is selected
         if (task.reminder != context.getString(R.string.reminder_none)) {
@@ -375,16 +361,26 @@ class TaskViewModel(
                 context.getString(R.string.reminder_1_hour) -> task.startDate.time - 60 * 60 * 1000
                 context.getString(R.string.reminder_1_day) -> task.startDate.time - 24 * 60 * 60 * 1000
                 context.getString(R.string.reminder_1_week) -> task.startDate.time - 7 * 24 * 60 * 60 * 1000
-                else -> task.startDate.time // No reminder
+                else -> task.startDate.time
             }
 
             if (reminderTime > System.currentTimeMillis()) {
-                scheduleReminder(alarmManager, context, reminderTime, task.title, "REMINDER", task.id.hashCode() + 1000, task.reminder!!)
+                val advanceReminderData = workDataOf(
+                    "TASK_TITLE" to task.title,
+                    "REMINDER_TIME" to task.reminder
+                )
+                val advanceReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+                    .setInitialDelay(reminderTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .setInputData(advanceReminderData)
+                    .build()
+
+                workManager.enqueue(advanceReminderRequest)
             }
         }
+
+        workManager.enqueue(startReminderRequest)
     }
 }
-
 class TaskViewModelFactory(
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson,
@@ -860,7 +856,7 @@ fun scheduleReminder(alarmManager: AlarmManager, context: Context, triggerAtMill
             putExtra("ACTION", action)
             putExtra("REMINDER_TIME", reminderTime)
         }
-        val pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
     }
 }
@@ -873,16 +869,12 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
         val message = when (action) {
             "START" -> taskTitle ?: "Задача"
-            "REMINDER" -> context.getString(R.string.task_reminder_message, taskTitle ?: "task")
-            else -> context.getString(R.string.task_reminder_message, taskTitle ?: "task")
+            "REMINDER" -> context.getString(R.string.task_reminder_message, taskTitle ?: "task", reminderTime ?: "")
+            else -> context.getString(R.string.task_reminder_message, taskTitle ?: "task", reminderTime ?: "")
         }
 
-        if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-            showNotification(context, message)
-            vibratePhone(context)
-        } else {
-            requestNotificationPermission(context)
-        }
+        showNotification(context, message)
+        vibratePhone(context)
     }
 
     private fun showNotification(context: Context, message: String?) {
@@ -894,15 +886,14 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(channelId, channelName, importance).apply {
                 description = "Канал для нагадувань про задачі"
             }
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
 
         val intent = Intent(context, TaskActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
@@ -912,7 +903,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             try {
                 with(NotificationManagerCompat.from(context)) {
                     notify(System.currentTimeMillis().toInt(), builder.build())
