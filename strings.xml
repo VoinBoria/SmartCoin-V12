@@ -81,7 +81,7 @@
     <string name="edit_task">Edit Task</string>
     <string name="task_title">Task Title</string>
     <string name="task_description">Task Description</string>
-    <string name="reminder">Reminder</string>
+    <string name="reminder">Reminder %1$s</string>
     <string name="reminder_none">Do not remind</string>
     <string name="reminder_10_minutes">In 10 minutes</string>
     <string name="reminder_30_minutes">In 30 minutes</string>
@@ -148,6 +148,6 @@
     <string name="balance">Balance</string>
     <string name="task_start_time_label">Start time</string>
     <string name="language">language</string>
-    <string name="task_start_message">%1$s задача почалася</string>
+    <string name="task_start_message">%1$s has begun</string>
     <string name="task_reminder_message">Task reminder %1$s, time: %2$s</string>
 </resources>
