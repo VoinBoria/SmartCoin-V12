@@ -16,7 +16,7 @@
     <string name="date">Дата</string>
     <string name="comment">Комментарий</string>
     <string name="period_selection">Выбор периода</string>
-    <string name="start_date">Дата начала</string>
+    <string name="start_date">Начало</string>
     <string name="end_date">Конечная дата</string>
     <string name="cancel">Отмена</string>
     <string name="sort_by">Сортировать по</string>
