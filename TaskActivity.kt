@@ -562,93 +562,77 @@ fun AddTaskDialog(
     var showReminderMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(showStartDatePicker) {
-        if (!showStartDatePicker) {
-            showStartTimePicker = false
+        if (showStartDatePicker) {
+            DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    startDate = Calendar.getInstance().apply {
+                        set(year, month, dayOfMonth)
+                    }.time
+                    showStartDatePicker = false
+                    showStartTimePicker = true
+                },
+                startDate.year + 1900,
+                startDate.month,
+                startDate.date
+            ).show()
         }
     }
 
     LaunchedEffect(showStartTimePicker) {
-        if (!showStartTimePicker) {
-            showStartDatePicker = false
+        if (showStartTimePicker) {
+            TimePickerDialog(
+                context,
+                { _, hourOfDay, minute ->
+                    startTime = Calendar.getInstance().apply {
+                        time = startDate
+                        set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        set(Calendar.MINUTE, minute)
+                    }.time
+                    showStartTimePicker = false
+                },
+                startTime.hours,
+                startTime.minutes,
+                true
+            ).show()
         }
     }
 
     LaunchedEffect(showEndDatePicker) {
-        if (!showEndDatePicker) {
-            showEndTimePicker = false
+        if (showEndDatePicker) {
+            DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    endDate = Calendar.getInstance().apply {
+                        set(year, month, dayOfMonth)
+                    }.time
+                    showEndDatePicker = false
+                    showEndTimePicker = true
+                },
+                endDate.year + 1900,
+                endDate.month,
+                endDate.date
+            ).show()
         }
     }
 
     LaunchedEffect(showEndTimePicker) {
-        if (!showEndTimePicker) {
-            showEndDatePicker = false
+        if (showEndTimePicker) {
+            TimePickerDialog(
+                context,
+                { _, hourOfDay, minute ->
+                    endTime = Calendar.getInstance().apply {
+                        time = endDate
+                        set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        set(Calendar.MINUTE, minute)
+                    }.time
+                    showEndTimePicker = false
+                },
+                endTime.hours,
+                endTime.minutes,
+                true
+            ).show()
         }
-    }
-
-    if (showStartDatePicker) {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                startDate = Calendar.getInstance().apply {
-                    set(year, month, dayOfMonth)
-                }.time
-                showStartDatePicker = false
-                showStartTimePicker = true
-            },
-            startDate.year + 1900,
-            startDate.month,
-            startDate.date
-        ).show()
-    }
-
-    if (showStartTimePicker) {
-        TimePickerDialog(
-            context,
-            { _, hourOfDay, minute ->
-                startTime = Calendar.getInstance().apply {
-                    time = startDate
-                    set(Calendar.HOUR_OF_DAY, hourOfDay)
-                    set(Calendar.MINUTE, minute)
-                }.time
-                showStartTimePicker = false
-            },
-            startTime.hours,
-            startTime.minutes,
-            true
-        ).show()
-    }
-
-    if (showEndDatePicker) {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                endDate = Calendar.getInstance().apply {
-                    set(year, month, dayOfMonth)
-                }.time
-                showEndDatePicker = false
-                showEndTimePicker = true
-            },
-            endDate.year + 1900,
-            endDate.month,
-            endDate.date
-        ).show()
-    }
-
-    if (showEndTimePicker) {
-        TimePickerDialog(
-            context,
-            { _, hourOfDay, minute ->
-                endTime = Calendar.getInstance().apply {
-                    time = endDate
-                    set(Calendar.HOUR_OF_DAY, hourOfDay)
-                    set(Calendar.MINUTE, minute)
-                }.time
-                showEndTimePicker = false
-            },
-            endTime.hours,
-            endTime.minutes,
-            true
-        ).show()
     }
 
     AlertDialog(
