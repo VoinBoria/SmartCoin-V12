@@ -900,6 +900,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         vibratePhone(context)
     }
 
+    // Ensure only one notification is shown at a time by cancelling the previous one
     private fun showNotification(context: Context, message: String?) {
         val channelId = "task_reminder_channel"
         val channelName = "Task Reminder"
@@ -928,6 +929,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
         try {
             with(NotificationManagerCompat.from(context)) {
+                cancelAll() // Cancel any previous notifications
                 notify(System.currentTimeMillis().toInt(), builder.build())
             }
         } catch (e: SecurityException) {
