@@ -691,7 +691,7 @@ fun AddTaskDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.reminder, reminder),
+                        text = stringResource(id = R.string.reminder) + ": " + reminder,
                         color = Color.Yellow,
                         style = MaterialTheme.typography.bodyLarge
                     )
