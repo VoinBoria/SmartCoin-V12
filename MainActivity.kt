@@ -29,12 +29,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.layout.ContentScale
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +54,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
@@ -63,7 +62,10 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.compose.ui.zIndex
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.Locale
+
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -311,7 +313,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             .background(MaterialTheme.colorScheme.primary)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.splash_image), // Встановіть ваш ID ресурсу зображення
+            painter = painterResource(id = R.drawable.splash_imagee), // Переконайтеся, що цей ресурс існує
             contentDescription = null,
             contentScale = ContentScale.Crop, // Додайте цей рядок для розтягування зображення
             modifier = Modifier.fillMaxSize() // Додайте цей рядок для розтягування зображення
@@ -948,12 +950,11 @@ fun MainScreen(
                     ) {
                         FloatingActionButton(
                             onClick = { showAddIncomeTransactionDialog = true },
-                            containerColor = Color.LightGray,
+                            containerColor = Color(0xFF228B22), // Slightly darker green color
                             modifier = Modifier.padding(end = 16.dp)
                         ) {
-                            Text("+", color = Color.Black, style = MaterialTheme.typography.bodyLarge)
+                            Text("+", color = Color.White, style = MaterialTheme.typography.bodyLarge)
                         }
-
                         FloatingActionButton(
                             onClick = { showAddExpenseTransactionDialog = true },
                             containerColor = Color(0xFFe6194B)
