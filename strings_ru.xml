@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">SmartCoin</string>
-    <string name="main_screen_title">Домашняя бухгалтерия</string>
+    <string name="main_screen_title">Главное меню</string>
     <string name="settings">Настройки</string>
     <string name="close" tools:ignore="DuplicateDefinition">Закрыть</string>
     <string name="save">Сохранить</string>
@@ -77,12 +77,11 @@
     <string name="allow">Разрешить</string>
     <string name="notification_permission_denied_message">Пожалуйста, включите разрешения на уведомления в настройках приложения</string>
     <string name="task_saved_message">Задача сохранена</string>
-    <string name="task_reminder_message">Напоминание по задаче "%1$s"</string>
     <string name="add_task">Добавить задачу</string>
     <string name="edit_task">Редактировать задачу</string>
     <string name="task_title">Название задачи</string>
     <string name="task_description">Описание задачи</string>
-    <string name="reminder">Напоминание: %1$s</string>
+    <string name="reminder">Напоминание</string>
     <string name="reminder_none">Не напоминать</string>
     <string name="reminder_10_minutes">За 10 минут</string>
     <string name="reminder_30_minutes">За 30 минут</string>
@@ -148,4 +147,7 @@
     <string name="task_manager">Менеджер задач</string>
     <string name="balance">Баланс</string>
     <string name="task_start_time_label">Время начала</string>
+    <string name="language">Язык</string>
+    <string name="task_start_message">%1$s задача почалася</string>
+    <string name="task_reminder_message">Напоминание про задачу %1$s, время: %2$s</string>
 </resources>
