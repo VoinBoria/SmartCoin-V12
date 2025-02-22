@@ -36,16 +36,22 @@ class ReminderWorker(
             notificationManager.createNotificationChannel(channel)
         }
 
+        val message = if (reminderTime == "на початку") {
+            applicationContext.getString(R.string.task_start_message, taskTitle)
+        } else {
+            applicationContext.getString(R.string.task_reminder_message, taskTitle, reminderTime)
+        }
+
         val builder = NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(applicationContext.getString(R.string.reminder))
-            .setContentText(applicationContext.getString(R.string.task_reminder_message, taskTitle, reminderTime))
+            .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
         try {
             with(NotificationManagerCompat.from(applicationContext)) {
-                notify(System.currentTimeMillis().toInt() and 0xFFFFFFF, builder.build())
+                notify((System.currentTimeMillis() and 0xFFFFFFF).toInt(), builder.build())
             }
         } catch (e: SecurityException) {
             // Handle the SecurityException if permission is denied
