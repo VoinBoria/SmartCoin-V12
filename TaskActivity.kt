@@ -557,6 +557,30 @@ fun AddTaskDialog(
     var showEndTimePicker by remember { mutableStateOf(false) }
     var showReminderMenu by remember { mutableStateOf(false) }
 
+    LaunchedEffect(showStartDatePicker) {
+        if (!showStartDatePicker) {
+            showStartTimePicker = false
+        }
+    }
+
+    LaunchedEffect(showStartTimePicker) {
+        if (!showStartTimePicker) {
+            showStartDatePicker = false
+        }
+    }
+
+    LaunchedEffect(showEndDatePicker) {
+        if (!showEndDatePicker) {
+            showEndTimePicker = false
+        }
+    }
+
+    LaunchedEffect(showEndTimePicker) {
+        if (!showEndTimePicker) {
+            showEndDatePicker = false
+        }
+    }
+
     if (showStartDatePicker) {
         DatePickerDialog(
             context,
