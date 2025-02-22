@@ -16,7 +16,7 @@
     <string name="date">Дата</string>
     <string name="comment">Коментар</string>
     <string name="period_selection">Вибір періоду</string>
-    <string name="start_date">Дата початку</string>
+    <string name="start_date">Початок</string>
     <string name="end_date">Кінцева дата</string>
     <string name="cancel">Скасувати</string>
     <string name="sort_by">Сортувати за</string>
