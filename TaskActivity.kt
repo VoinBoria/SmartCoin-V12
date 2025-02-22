@@ -340,6 +340,7 @@ class TaskViewModel(
         return _tasks.any { !it.isCompleted && it.endDate.before(currentDate) }
     }
 
+    // Update the method scheduleTaskReminders in TaskViewModel class
     @RequiresApi(Build.VERSION_CODES.S)
     private fun scheduleTaskReminders(task: Task) {
         val workManager = WorkManager.getInstance(context)
@@ -347,7 +348,7 @@ class TaskViewModel(
         // Schedule reminder for task start time
         val startReminderData = workDataOf(
             "TASK_TITLE" to task.title,
-            "REMINDER_TIME" to "на початку"
+            "REMINDER_TIME" to "START"
         )
         val startReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
             .setInitialDelay(task.startDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -370,7 +371,7 @@ class TaskViewModel(
             if (reminderTime > System.currentTimeMillis()) {
                 val advanceReminderData = workDataOf(
                     "TASK_TITLE" to task.title,
-                    "REMINDER_TIME" to task.reminder
+                    "REMINDER_TIME" to "REMINDER"
                 )
                 val advanceReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
                     .setInitialDelay(reminderTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -381,6 +382,8 @@ class TaskViewModel(
             }
         }
     }
+
+
 }
 class TaskViewModelFactory(
     private val sharedPreferences: SharedPreferences,
@@ -886,16 +889,12 @@ fun scheduleReminder(alarmManager: AlarmManager, context: Context, triggerAtMill
 }
 
 class ReminderBroadcastReceiver : BroadcastReceiver() {
+    // Update the onReceive method in ReminderBroadcastReceiver class
     override fun onReceive(context: Context, intent: Intent) {
         val taskTitle = intent.getStringExtra("TASK_TITLE")
         val action = intent.getStringExtra("ACTION")
-        val reminderTime = intent.getStringExtra("REMINDER_TIME")
 
-        val message = when (action) {
-            "START" -> taskTitle ?: "Задача"
-            "REMINDER" -> context.getString(R.string.task_reminder_message, taskTitle ?: "task", reminderTime ?: "")
-            else -> context.getString(R.string.task_reminder_message, taskTitle ?: "task", reminderTime ?: "")
-        }
+        val message = taskTitle ?: "Задача"
 
         showNotification(context, message)
         vibratePhone(context)
