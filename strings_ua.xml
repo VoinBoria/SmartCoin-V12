@@ -81,7 +81,7 @@
     <string name="edit_task">Редагувати задачу</string>
     <string name="task_title">Назва задачі</string>
     <string name="task_description">Опис задачі</string>
-    <string name="reminder">Нагадування</string>
+    <string name="reminder">Нагадування %1$s</string>
     <string name="reminder_none">Не нагадувати</string>
     <string name="reminder_10_minutes">За 10 хвилин</string>
     <string name="reminder_30_minutes">За пів години</string>
