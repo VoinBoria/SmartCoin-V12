@@ -353,6 +353,8 @@ class TaskViewModel(
             .setInputData(startReminderData)
             .build()
 
+        workManager.enqueue(startReminderRequest)
+
         // Schedule advance reminder if a reminder time is selected
         if (task.reminder != context.getString(R.string.reminder_none)) {
             val reminderTime = when (task.reminder) {
@@ -377,8 +379,6 @@ class TaskViewModel(
                 workManager.enqueue(advanceReminderRequest)
             }
         }
-
-        workManager.enqueue(startReminderRequest)
     }
 }
 class TaskViewModelFactory(
@@ -903,15 +903,11 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            try {
-                with(NotificationManagerCompat.from(context)) {
-                    notify(System.currentTimeMillis().toInt(), builder.build())
-                }
-            } catch (e: SecurityException) {
-                requestNotificationPermission(context)
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(System.currentTimeMillis().toInt(), builder.build())
             }
-        } else {
+        } catch (e: SecurityException) {
             requestNotificationPermission(context)
         }
     }
