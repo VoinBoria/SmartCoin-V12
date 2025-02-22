@@ -81,7 +81,7 @@
     <string name="edit_task">Редактировать задачу</string>
     <string name="task_title">Название задачи</string>
     <string name="task_description">Описание задачи</string>
-    <string name="reminder">Напоминание %1$sр</string>
+    <string name="reminder">Напоминание</string>
     <string name="reminder_none">Не напоминать</string>
     <string name="reminder_10_minutes">За 10 минут</string>
     <string name="reminder_30_minutes">За 30 минут</string>
