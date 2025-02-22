@@ -675,7 +675,7 @@ fun AddTaskDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.start_date, SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(startTime)),
+                        text = stringResource(id = R.string.start_date) + ": " + SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(startTime),
                         color = Color(0xFF4CAF50),
                         style = MaterialTheme.typography.bodyLarge
                     )
