@@ -287,7 +287,7 @@ class TaskViewModel(
     fun addTask(task: Task) {
         _tasks.add(task)
         saveTasks()
-        scheduleTaskReminders(task) // Schedule reminders when adding a task
+        scheduleTaskReminders(task) // Запланувати нагадування під час додавання задачі
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -296,9 +296,10 @@ class TaskViewModel(
         if (index != -1) {
             _tasks[index] = updatedTask
             saveTasks()
-            scheduleTaskReminders(updatedTask) // Schedule reminders after updating a task
+            scheduleTaskReminders(updatedTask) // Запланувати нагадування після оновлення задачі
         }
     }
+
 
     fun removeTask(task: Task) {
         _tasks.remove(task)
