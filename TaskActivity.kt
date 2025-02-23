@@ -337,7 +337,7 @@ class TaskViewModel(
 
     fun hasOverdueTasks(): Boolean {
         val currentDate = Date()
-        return _tasks.any { !it.isCompleted && it.endDate.before(currentDate) }
+        return _tasks.any { !it.isCompleted && it.startDate.before(currentDate) }
     }
 
     // Update the method scheduleTaskReminders in TaskViewModel class
