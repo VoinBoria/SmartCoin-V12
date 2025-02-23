@@ -340,7 +340,6 @@ class TaskViewModel(
         return _tasks.any { !it.isCompleted && it.startDate.before(currentDate) }
     }
 
-    // Update the method scheduleTaskReminders in TaskViewModel class
     @RequiresApi(Build.VERSION_CODES.S)
     private fun scheduleTaskReminders(task: Task) {
         val workManager = WorkManager.getInstance(context)
@@ -348,7 +347,8 @@ class TaskViewModel(
         // Schedule reminder for task start time
         val startReminderData = workDataOf(
             "TASK_TITLE" to task.title,
-            "REMINDER_TIME" to "START"
+            "REMINDER_TIME" to "START",
+            "TASK_ID" to task.id
         )
         val startReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
             .setInitialDelay(task.startDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
@@ -365,25 +365,26 @@ class TaskViewModel(
                 context.getString(R.string.reminder_1_hour) -> task.startDate.time - 60 * 60 * 1000
                 context.getString(R.string.reminder_1_day) -> task.startDate.time - 24 * 60 * 60 * 1000
                 context.getString(R.string.reminder_1_week) -> task.startDate.time - 7 * 24 * 60 * 60 * 1000
-                else -> task.startDate.time
+                else -> null
             }
 
-            if (reminderTime > System.currentTimeMillis()) {
-                val advanceReminderData = workDataOf(
-                    "TASK_TITLE" to task.title,
-                    "REMINDER_TIME" to "REMINDER"
-                )
-                val advanceReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
-                    .setInitialDelay(reminderTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                    .setInputData(advanceReminderData)
-                    .build()
+            reminderTime?.let {
+                if (it > System.currentTimeMillis()) {
+                    val advanceReminderData = workDataOf(
+                        "TASK_TITLE" to task.title,
+                        "REMINDER_TIME" to "REMINDER",
+                        "TASK_ID" to task.id
+                    )
+                    val advanceReminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+                        .setInitialDelay(it - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                        .setInputData(advanceReminderData)
+                        .build()
 
-                workManager.enqueue(advanceReminderRequest)
+                    workManager.enqueue(advanceReminderRequest)
+                }
             }
         }
     }
-
-
 }
 class TaskViewModelFactory(
     private val sharedPreferences: SharedPreferences,
@@ -873,19 +874,18 @@ fun scheduleReminder(alarmManager: AlarmManager, context: Context, triggerAtMill
 }
 
 class ReminderBroadcastReceiver : BroadcastReceiver() {
-    // Update the onReceive method in ReminderBroadcastReceiver class
     override fun onReceive(context: Context, intent: Intent) {
         val taskTitle = intent.getStringExtra("TASK_TITLE")
         val action = intent.getStringExtra("ACTION")
+        val taskId = intent.getStringExtra("TASK_ID")
 
         val message = taskTitle ?: "Задача"
 
-        showNotification(context, message)
+        showNotification(context, message, taskId ?: "")
         vibratePhone(context)
     }
 
-    // Ensure only one notification is shown at a time by cancelling the previous one
-    private fun showNotification(context: Context, message: String?) {
+    private fun showNotification(context: Context, message: String?, taskId: String) {
         val channelId = "task_reminder_channel"
         val channelName = "Task Reminder"
         val importance = NotificationManager.IMPORTANCE_HIGH
@@ -901,7 +901,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         val intent = Intent(context, TaskActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, taskId.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
@@ -913,8 +913,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
         try {
             with(NotificationManagerCompat.from(context)) {
-                cancelAll() // Cancel any previous notifications
-                notify(System.currentTimeMillis().toInt(), builder.build())
+                notify(taskId.hashCode(), builder.build())
             }
         } catch (e: SecurityException) {
             requestNotificationPermission(context)
