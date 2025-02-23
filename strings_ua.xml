@@ -97,7 +97,7 @@
     <string name="expense_title">Витрати</string>
     <string name="menu_description_expense">Меню витрат</string>
     <string name="add_transaction_expense">Додати транзакцію витрат</string>
-    <string name="add_category_expense">Додати категорію витрат</string>
+    <string name="add_category_expense">Додати категорію</string>
     <string name="total_expense">Загальні витрати</string>
     <string name="confirm_delete_category_expense">Ви впевнені, що хочете видалити цю категорію витрат?</string>
     <string name="no_expense">Ні</string>
@@ -130,7 +130,7 @@
     <string name="passive_income">Пасивний дохід</string>
     <string name="income_title">Доходи</string>
     <string name="add_income">Додати дохід</string>
-    <string name="add_category_income">Додати категорію доходів</string>
+    <string name="add_category_income">Додати категорію</string>
     <string name="total_income">Загальні доходи</string>
     <string name="confirm_delete_category_income">Ви впевнені, що хочете видалити цю категорію доходу?</string>
     <string name="no_income">Ні</string>
@@ -148,7 +148,7 @@
     <string name="balance">Залишок</string>
     <string name="task_start_time_label">Час початку</string>
     <string name="language">Мова</string>
-    <string name="task_start_message">%1$s задача почалася</string>
-    <string name="task_reminder_message">Нагадування про задачу %1$s, час: %2$s</string>
+    <string name="task_start_message">%1$s</string>
+    <string name="task_reminder_message">%1$s</string>
 
 </resources>
