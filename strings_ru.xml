@@ -97,7 +97,7 @@
     <string name="expense_title">Расходы</string>
     <string name="menu_description_expense">Меню расходов</string>
     <string name="add_transaction_expense">Добавить транзакцию расходов</string>
-    <string name="add_category_expense">Добавить категорию расходов</string>
+    <string name="add_category_expense">Добавить категорию</string>
     <string name="total_expense">Общие расходы</string>
     <string name="confirm_delete_category_expense">Вы уверены, что хотите удалить эту категорию расходов?</string>
     <string name="no_expense">Нет</string>
@@ -129,7 +129,7 @@
     <string name="bonus">Бонусы</string>
     <string name="passive_income">Пассивный доход</string>
     <string name="income_title">Доходы</string>
-    <string name="add_category_income">Добавить категорию доходов</string>
+    <string name="add_category_income">Добавить категорию</string>
     <string name="total_income">Общие доходы</string>
     <string name="confirm_delete_category_income">Вы уверены, что хотите удалить эту категорию доходов?</string>
     <string name="no_income">Нет</string>
@@ -148,6 +148,7 @@
     <string name="balance">Баланс</string>
     <string name="task_start_time_label">Время начала</string>
     <string name="language">Язык</string>
-    <string name="task_start_message">%1$s задача началась</string>
-    <string name="task_reminder_message">Напоминание про задачу %1$s, время: %2$s</string>
+    <string name="task_start_message">%1$s</string>
+    <string name="task_reminder_message">%1$s</string>
+
 </resources>
