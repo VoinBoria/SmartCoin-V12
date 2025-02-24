@@ -296,8 +296,6 @@ fun generateDistinctColors(count: Int, excludeRed: Boolean = false, excludeGreen
     return List(count) { filteredColors[it % filteredColors.size] }
 }
 
-// ExpandableButtonWithAmount.kt
-
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ExpandableButtonWithAmount(
@@ -346,7 +344,7 @@ fun ExpandableButtonWithAmount(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Додаємо валюту
                         color = textColor,
                         fontWeight = fontWeight,
                         fontSize = fontSize
@@ -362,7 +360,6 @@ fun ExpandableButtonWithAmount(
         }
     }
 }
-
 @Composable
 fun IncomeList(
     incomes: Map<String, Double>,
@@ -396,7 +393,7 @@ fun IncomeList(
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                     Text(
-                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Додаємо валюту
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                 }
@@ -438,7 +435,7 @@ fun ExpensesList(
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                     Text(
-                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Додаємо валюту
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                 }
@@ -446,6 +443,8 @@ fun ExpensesList(
         }
     }
 }
+
+
 @Composable
 fun CategoryItem(
     text: String,
