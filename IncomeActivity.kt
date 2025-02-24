@@ -96,12 +96,23 @@ class IncomeActivity : ComponentActivity() {
         val savedIncomeHash = incomesharedPreferences.getString("categories_hash", "")
 
         if (currentIncomeHash != savedIncomeHash) {
-            val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
+            val currentIncomeCategories = loadExistingCategories(incomesharedPreferences)
+            val incomeCategories = (StandardCategories.getStandardIncomeCategories(this) + currentIncomeCategories).distinct()
             saveCategories(incomeCategories)
             incomesharedPreferences.edit().putString("categories_hash", currentIncomeHash).apply()
             viewModel.updateCategories(incomeCategories)
         }
     }
+    // New helper function to load existing categories
+    private fun loadExistingCategories(sharedPreferences: SharedPreferences): List<String> {
+        val categoriesJson = sharedPreferences.getString("categories", null)
+        return if (categoriesJson != null) {
+            Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
+        } else {
+            emptyList()
+        }
+    }
+
     private fun saveCategories(categories: List<String>) {
         val editor = incomesharedPreferences.edit()
         val categoriesJson = gson.toJson(categories)
@@ -244,8 +255,10 @@ class IncomeActivity : ComponentActivity() {
         private const val TAG = "IncomeActivity"
     }
 }
+// IncomeViewModel.kt
 class IncomeViewModel(application: Application) : AndroidViewModel(application) {
     private val incomesharedPreferences = application.getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
+    private val settingsSharedPreferences = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val gson = Gson()
     var categories by mutableStateOf<List<String>>(emptyList())
     var IncomeTransactions by mutableStateOf<List<IncomeTransaction>>(emptyList())
@@ -256,11 +269,21 @@ class IncomeViewModel(application: Application) : AndroidViewModel(application) 
     val sortedTransactions: StateFlow<List<IncomeTransaction>> = _sortedTransactions
     private val _filteredTransactions = MutableStateFlow<List<IncomeTransaction>>(emptyList())
     val filteredTransactions: StateFlow<List<IncomeTransaction>> = _filteredTransactions
+    private val _currency = MutableStateFlow(getCurrentCurrency())
+    val currency: StateFlow<String> = _currency
 
     private var sendUpdateBroadcast: (() -> Unit)? = null
 
     init {
         loadDataIncome()
+        viewModelScope.launch {
+            _currency.collect {
+                loadDataIncome()
+            }
+        }
+    }
+    private fun getCurrentCurrency(): String {
+        return settingsSharedPreferences.getString("currency", "UAH") ?: "UAH"
     }
 
     fun setSendUpdateBroadcast(sendUpdateBroadcast: () -> Unit) {
