@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
+// Ensure "EUR" is included in the currency options in the SettingsMenu.kt file
 @Composable
 fun SettingsMenu(
     onDismiss: () -> Unit,
@@ -27,7 +28,7 @@ fun SettingsMenu(
     onLanguageSelected: (String) -> Unit,
     updateLocale: (Context, String) -> Unit,
     onSaveSettings: () -> Unit,
-    refreshUI: () -> Unit // Доданий параметр
+    refreshUI: () -> Unit
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -120,8 +121,6 @@ fun SettingsMenu(
                     Text(stringResource(id = R.string.close), color = Color.Red)
                 }
 
-                // SettingsMenu.kt
-
                 TextButton(onClick = {
                     saveSettings(sharedPreferences, selectedLanguage, selectedCurrency) // Save settings
                     updateLocale(context, selectedLanguage) // Update locale
@@ -137,21 +136,6 @@ fun SettingsMenu(
 }
 
 @Composable
-fun LanguageOption(language: String, selectedLanguage: String, onSelect: (String) -> Unit) {
-    Button(
-        onClick = { onSelect(language) },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (language == selectedLanguage) Color.Gray else Color.Gray.copy(alpha = 0.5f),
-            contentColor = Color.White
-        ),
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-    ) {
-        Text(text = language)
-    }
-}
-
-@Composable
 fun CurrencyOption(currency: String, selectedCurrency: String, onSelect: (String) -> Unit) {
     Button(
         onClick = { onSelect(currency) },
@@ -163,6 +147,21 @@ fun CurrencyOption(currency: String, selectedCurrency: String, onSelect: (String
             .clip(RoundedCornerShape(8.dp))
     ) {
         Text(text = currency)
+    }
+}
+
+@Composable
+fun LanguageOption(language: String, selectedLanguage: String, onSelect: (String) -> Unit) {
+    Button(
+        onClick = { onSelect(language) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (language == selectedLanguage) Color.Gray else Color.Gray.copy(alpha = 0.5f),
+            contentColor = Color.White
+        ),
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+    ) {
+        Text(text = language)
     }
 }
 
