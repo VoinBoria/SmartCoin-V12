@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalPagerApi::class)
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -295,6 +296,8 @@ fun generateDistinctColors(count: Int, excludeRed: Boolean = false, excludeGreen
     return List(count) { filteredColors[it % filteredColors.size] }
 }
 
+// ExpandableButtonWithAmount.kt
+
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ExpandableButtonWithAmount(
@@ -343,7 +346,7 @@ fun ExpandableButtonWithAmount(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${"%.2f".format(amount)} $currency", // Додаємо валюту
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
                         color = textColor,
                         fontWeight = fontWeight,
                         fontSize = fontSize
@@ -359,6 +362,7 @@ fun ExpandableButtonWithAmount(
         }
     }
 }
+
 @Composable
 fun IncomeList(
     incomes: Map<String, Double>,
@@ -392,7 +396,7 @@ fun IncomeList(
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                     Text(
-                        text = "${"%.2f".format(amount)} $currency", // Додаємо валюту
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                 }
@@ -434,7 +438,7 @@ fun ExpensesList(
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                     Text(
-                        text = "${"%.2f".format(amount)} $currency", // Додаємо валюту
+                        text = "${"%.2f".format(Locale.US, amount)} $currency", // Use Locale.US to ensure decimal point
                         style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                     )
                 }
@@ -442,8 +446,6 @@ fun ExpensesList(
         }
     }
 }
-
-
 @Composable
 fun CategoryItem(
     text: String,
