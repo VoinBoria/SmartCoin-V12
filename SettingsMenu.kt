@@ -119,12 +119,15 @@ fun SettingsMenu(
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(id = R.string.close), color = Color.Red)
                 }
+
+                // SettingsMenu.kt
+
                 TextButton(onClick = {
-                    saveSettings(sharedPreferences, selectedLanguage, selectedCurrency) // Виклик saveSettings
+                    saveSettings(sharedPreferences, selectedLanguage, selectedCurrency) // Save settings
+                    updateLocale(context, selectedLanguage) // Update locale
                     onSaveSettings()
-                    updateLocale(context, selectedLanguage) // Виклик updateLocale
                     onDismiss()
-                    refreshUI() // Виклик refreshUI
+                    refreshUI() // Refresh UI
                 }) {
                     Text(stringResource(id = R.string.save), color = Color.Green)
                 }
