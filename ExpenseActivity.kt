@@ -93,10 +93,20 @@ class ExpenseActivity : ComponentActivity() {
         val savedExpenseHash = sharedPreferences.getString("categories_hash", "")
 
         if (currentExpenseHash != savedExpenseHash) {
-            val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
+            val currentExpenseCategories = loadExistingCategories(sharedPreferences)
+            val expenseCategories = (StandardCategories.getStandardExpenseCategories(this) + currentExpenseCategories).distinct()
             saveCategories(expenseCategories)
             sharedPreferences.edit().putString("categories_hash", currentExpenseHash).apply()
             viewModel.updateCategories(expenseCategories)
+        }
+    }
+    // New helper function to load existing categories
+    private fun loadExistingCategories(sharedPreferences: SharedPreferences): List<String> {
+        val categoriesJson = sharedPreferences.getString("categories", null)
+        return if (categoriesJson != null) {
+            Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
+        } else {
+            emptyList()
         }
     }
     private fun saveCategories(categories: List<String>) {
@@ -243,6 +253,7 @@ class ExpenseActivity : ComponentActivity() {
 
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences = application.getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
+    private val settingsSharedPreferences = application.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val gson = Gson()
     var categories by mutableStateOf<List<String>>(emptyList())
     private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
@@ -252,11 +263,21 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     var sortType by mutableStateOf(ExpenseSortType.DATE)
     private val _sortedTransactions = MutableStateFlow<List<Transaction>>(emptyList())
     val sortedTransactions: StateFlow<List<Transaction>> = _sortedTransactions
+    private val _currency = MutableStateFlow(getCurrentCurrency())
+    val currency: StateFlow<String> = _currency
 
     private var sendUpdateBroadcast: (() -> Unit)? = null
 
     init {
         loadData()
+        viewModelScope.launch {
+            _currency.collect {
+                loadData()
+            }
+        }
+    }
+    private fun getCurrentCurrency(): String {
+        return settingsSharedPreferences.getString("currency", "UAH") ?: "UAH"
     }
 
     // Метод для встановлення функції
