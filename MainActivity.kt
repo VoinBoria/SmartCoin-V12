@@ -241,6 +241,7 @@ class MainActivity : ComponentActivity() {
         return sharedPreferences.getString("language", "UK") ?: "UK"
     }
 
+    // Ensure the locale update does not disrupt data storage
     private fun updateLocale(context: Context, language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
@@ -248,6 +249,7 @@ class MainActivity : ComponentActivity() {
         val config = resources.configuration
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
+        // Refresh UI without affecting stored data
     }
 
     private fun saveSettings(sharedPreferences: SharedPreferences, language: String, currency: String) {
@@ -278,6 +280,7 @@ class MainActivity : ComponentActivity() {
         editor.apply()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateCategoriesIfNeeded() {
         val sharedPreferencesExpense = getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
         val sharedPreferencesIncome = getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
@@ -326,9 +329,9 @@ fun SplashScreen(onTimeout: () -> Unit) {
     }
 }
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val sharedPreferencesExpense = application.getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
-    private val sharedPreferencesIncome = application.getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val sharedPreferencesExpense = getApplication<Application>().getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
+    private val sharedPreferencesIncome = getApplication<Application>().getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
 
     private val _expenses = MutableLiveData<Map<String, Double>>()
     val expenses: LiveData<Map<String, Double>> = _expenses
@@ -342,8 +345,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _incomeCategories = MutableLiveData<List<String>>()
     val incomeCategories: LiveData<List<String>> = _incomeCategories
 
+
     init {
         loadStandardCategories()
+        loadExpensesFromSharedPreferences() // Ensure data is loaded on initialization
+        loadIncomesFromSharedPreferences() // Ensure data is loaded on initialization
     }
 
     // Метод для завантаження стандартних категорій
@@ -359,11 +365,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         loadIncomesFromSharedPreferences()
     }
 
-    // Загальний метод для завантаження категорій
     private fun loadCategories(sharedPreferences: SharedPreferences, defaultCategories: List<String>): List<String> {
         val categoriesJson = sharedPreferences.getString("categories", null)
         return if (categoriesJson != null) {
-            gson.fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
+            Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
         } else {
             saveCategories(sharedPreferences, defaultCategories)
             defaultCategories
@@ -403,7 +408,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val expensesJson = gson.toJson(expenses)
         editor.putString("expenses", expensesJson).apply()
         Log.d("MainViewModel", "Expenses saved: $expensesJson")
-        _expenses.postValue(expenses) // Негайне оновлення LiveData
+        _expenses.postValue(expenses) // Immediate update to LiveData
     }
 
     fun loadIncomesFromSharedPreferences() {
@@ -422,7 +427,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val incomesJson = gson.toJson(incomes)
         editor.putString("incomes", incomesJson).apply()
         Log.d("MainViewModel", "Incomes saved: $incomesJson")
-        _incomes.postValue(incomes) // Негайне оновлення LiveData
+        _incomes.postValue(incomes) // Immediate update to LiveData
     }
 
     fun saveExpenseTransaction(context: Context, transaction: Transaction) {
@@ -466,16 +471,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val type = object : TypeToken<List<Transaction>>() {}.type
         val transactions: List<Transaction> = gson.fromJson(transactionsJson, type)
 
-        // Перерахунок витрат
+        // Recalculate expenses
         val updatedExpenses = calculateExpenses(transactions)
 
-        // Додавання порожніх категорій
+        // Add empty categories
         val expenseCategories = _expenseCategories.value ?: emptyList()
         val completeExpenses = expenseCategories.associateWith { updatedExpenses[it] ?: 0.0 }
 
         _expenses.postValue(completeExpenses)
         saveExpensesToSharedPreferences(completeExpenses)
     }
+
 
     fun addExpenseCategory(newCategory: String) {
         val currentCategories = _expenseCategories.value ?: emptyList()
@@ -491,10 +497,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val type = object : TypeToken<List<IncomeTransaction>>() {}.type
         val transactions: List<IncomeTransaction> = gson.fromJson(transactionsJson, type)
 
-        // Перерахунок доходів
+        // Recalculate incomes
         val updatedIncomes = calculateIncomes(transactions)
 
-        // Додавання порожніх категорій
+        // Add empty categories
         val incomeCategories = _incomeCategories.value ?: emptyList()
         val completeIncomes = incomeCategories.associateWith { updatedIncomes[it] ?: 0.0 }
 
