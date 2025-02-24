@@ -483,7 +483,8 @@ fun BudgetPlanningScreen(viewModel: BudgetPlanningViewModel, selectedCurrency: S
                 savingsList = savingsList,
                 onDismissRequest = { isViewingSavings = false },
                 onUpdateSaving = { index, newAmount -> viewModel.updateSaving(context, index, newAmount) },
-                onDeleteSaving = { index -> viewModel.deleteSaving(context, index) }
+                onDeleteSaving = { index -> viewModel.deleteSaving(context, index) },
+                selectedCurrency = selectedCurrency // Pass the selectedCurrency
             )
         }
     }
@@ -810,7 +811,8 @@ fun SavingsListDialog(
     savingsList: List<Double>,
     onDismissRequest: () -> Unit,
     onUpdateSaving: (Int, Double) -> Unit,
-    onDeleteSaving: (Int) -> Unit
+    onDeleteSaving: (Int) -> Unit,
+    selectedCurrency: String // Add selectedCurrency parameter
 ) {
     var editingIndex by remember { mutableStateOf(-1) }
     var editedAmount by remember { mutableStateOf("") }
@@ -905,7 +907,7 @@ fun SavingsListDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "$saving ${stringResource(id = R.string.currency)}",
+                                text = "${saving} $selectedCurrency",
                                 color = Color.White,
                                 modifier = Modifier.weight(1f),
                                 fontSize = fontSize
