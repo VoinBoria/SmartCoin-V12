@@ -258,19 +258,39 @@ class MainActivity : ComponentActivity() {
             putString("currency", currency)
             apply()
         }
+        // Notify all activities about the locale update
+        sendLocaleUpdateBroadcast(this@MainActivity, language)
+    }
+    private fun sendLocaleUpdateBroadcast(context: Context, language: String) {
+        val intent = Intent("com.example.homeaccountingapp.UPDATE_LOCALE")
+        intent.putExtra("language", language)
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
+    // Existing function
     private fun updateCategories() {
         val sharedPreferencesExpense = getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
         val sharedPreferencesIncome = getSharedPreferences("IncomePrefs", Context.MODE_PRIVATE)
 
-        val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
-        val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
+        val currentExpenseCategories = loadExistingCategories(sharedPreferencesExpense)
+        val currentIncomeCategories = loadExistingCategories(sharedPreferencesIncome)
+
+        val expenseCategories = (StandardCategories.getStandardExpenseCategories(this) + currentExpenseCategories).distinct()
+        val incomeCategories = (StandardCategories.getStandardIncomeCategories(this) + currentIncomeCategories).distinct()
 
         saveCategories(sharedPreferencesExpense, expenseCategories)
         saveCategories(sharedPreferencesIncome, incomeCategories)
 
         viewModel.refreshCategories()
+    }
+    // New helper function to load existing categories
+    private fun loadExistingCategories(sharedPreferences: SharedPreferences): List<String> {
+        val categoriesJson = sharedPreferences.getString("categories", null)
+        return if (categoriesJson != null) {
+            Gson().fromJson(categoriesJson, object : TypeToken<List<String>>() {}.type)
+        } else {
+            emptyList()
+        }
     }
 
     private fun saveCategories(sharedPreferences: SharedPreferences, categories: List<String>) {
@@ -280,6 +300,7 @@ class MainActivity : ComponentActivity() {
         editor.apply()
     }
 
+    // Existing function
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateCategoriesIfNeeded() {
         val sharedPreferencesExpense = getSharedPreferences("ExpensePrefs", Context.MODE_PRIVATE)
@@ -291,13 +312,15 @@ class MainActivity : ComponentActivity() {
         val savedIncomeHash = sharedPreferencesIncome.getString("categories_hash", "")
 
         if (currentExpenseHash != savedExpenseHash) {
-            val expenseCategories = StandardCategories.getStandardExpenseCategories(this)
+            val currentExpenseCategories = loadExistingCategories(sharedPreferencesExpense)
+            val expenseCategories = (StandardCategories.getStandardExpenseCategories(this) + currentExpenseCategories).distinct()
             saveCategories(sharedPreferencesExpense, expenseCategories)
             sharedPreferencesExpense.edit().putString("categories_hash", currentExpenseHash).apply()
         }
 
         if (currentIncomeHash != savedIncomeHash) {
-            val incomeCategories = StandardCategories.getStandardIncomeCategories(this)
+            val currentIncomeCategories = loadExistingCategories(sharedPreferencesIncome)
+            val incomeCategories = (StandardCategories.getStandardIncomeCategories(this) + currentIncomeCategories).distinct()
             saveCategories(sharedPreferencesIncome, incomeCategories)
             sharedPreferencesIncome.edit().putString("categories_hash", currentIncomeHash).apply()
         }
