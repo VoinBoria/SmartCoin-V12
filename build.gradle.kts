@@ -12,8 +12,8 @@ android {
         applicationId = "com.serhio.homeaccountingapp"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "5.0"
+        versionCode = 6
+        versionName = "6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -105,4 +105,7 @@ dependencies {
 
     // Material Dialogs Library
     implementation("io.github.vanpra.compose-material-dialogs:datetime:0.6.0")
+
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
 }
